@@ -1,5 +1,10 @@
 import time
 import itertools
+import colors
+
+
+def offset(pattern, index):
+    return itertools.chain(pattern[index:], pattern[:index])
 
 
 def scroll(pattern):
@@ -8,7 +13,7 @@ def scroll(pattern):
     """
     index = 0
     while True:
-        yield itertools.chain(pattern[index:], pattern[:index])
+        yield offset(pattern, index)
         index = (index + 1) % len(pattern)
 
 
@@ -71,5 +76,6 @@ def fade(target, steps):
         )
 
     yield _init
+
     for state in _render():
         yield state

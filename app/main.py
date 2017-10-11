@@ -26,7 +26,7 @@ driver.begin()
 # throw away root privileges
 os.setuid(pwd.getpwnam('nobody').pw_uid)
 
-send_to_strip = strip.render_loop(driver)
+render = strip.render_loop(driver)
 
 app = flask.Flask(__name__)
 
@@ -34,6 +34,19 @@ app = flask.Flask(__name__)
 @app.route('/')
 def index():
     return flask.render_template('index.html')
+
+
+@app.route('/centre-fade')
+def centre_fade():
+    pattern = tuple(
+        colors.scale((255, 0, 0), abs(n - (150 / 2)), ratio=162)
+        for n in xrange(driver.numPixels())
+    )
+    pattern = generators.offset(pattern, int(driver.numPixels() / 2))
+    render([
+        itertools.cycle(pattern)
+    ])
+    return flask.redirect('/')
 
 
 @app.route('/rotate')
@@ -47,7 +60,7 @@ def rotate():
         for iterator in
         generators.scroll(pattern)
     )
-    send_to_strip(generators.hertz(50, pattern))
+    render(generators.hertz(50, pattern))
     return flask.redirect('/')
 
 
@@ -62,26 +75,35 @@ def rotate2():
         for iterator in
         generators.scroll(pattern)
     )
-    send_to_strip(generators.hertz(50, pattern))
+    render(generators.hertz(50, pattern))
     return flask.redirect('/')
 
 
 @app.route('/fade-up')
 def fade_up():
-    send_to_strip(generators.hertz(50, generators.fade((255, 255, 255), 25)))
+    render(generators.hertz(50, generators.fade((255, 255, 255), 25)))
     return flask.redirect('/')
 
 
 @app.route('/fade-down')
 def fade_down():
-    send_to_strip(generators.hertz(50, generators.fade((0, 0, 0), 25)))
+    render(generators.hertz(50, generators.fade((0, 0, 0), 25)))
     return flask.redirect('/')
 
 
 @app.route('/pinks')
 def pinks():
     pattern = ((255, 192, 203), (138, 43, 226), (75, 0, 130))
-    send_to_strip([
+    render([
+        itertools.cycle(pattern)
+    ])
+    return flask.redirect('/')
+
+
+@app.route('/white')
+def white():
+    pattern = ((255, 255, 255),)
+    render([
         itertools.cycle(pattern)
     ])
     return flask.redirect('/')
@@ -95,7 +117,7 @@ def chase():
         for iterator in
         generators.scroll(pattern)
     )
-    send_to_strip(generators.hertz(5, pattern))
+    render(generators.hertz(5, pattern))
     return flask.redirect('/')
 
 
@@ -103,7 +125,7 @@ def main():
     try:
         app.run(host='0.0.0.0', debug=True, use_reloader=False)
     finally:
-        send_to_strip(StopIteration)
+        render(StopIteration)
 
 
 if __name__ == '__main__':

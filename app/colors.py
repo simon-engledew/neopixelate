@@ -1,4 +1,8 @@
+import operator
+
+
 FLOAT_ERROR = 0.0000005
+MAX = 255
 
 
 def _hue2rgb(v1, v2, vH):
@@ -34,11 +38,11 @@ def _hsl2rgb(hsl):
     g = _hue2rgb(v1, v2, h)
     b = _hue2rgb(v1, v2, h - (1.0 / 3))
 
-    return int(r*255), int(g*255), int(b*255)
+    return int(r*MAX), int(g*MAX), int(b*MAX)
 
 
 def _rgb2hsl(rgb):
-    r, g, b = (v/255.0 for v in rgb)
+    r, g, b = (v/float(MAX) for v in rgb)
 
     vmin = min(r, g, b)
     vmax = max(r, g, b)
@@ -71,6 +75,23 @@ def _rgb2hsl(rgb):
     if h > 1: h -= 1
 
     return (h, s, l)
+
+
+def _scale(value, distance, shallow=True):
+    fn = operator.mul if shallow else operator.pow
+
+    intensity = value - fn(distance, 2)
+
+    return min(MAX, max(0, int(intensity)))
+
+
+def scale((r, g, b), distance, ratio):
+    fade = ratio / float(MAX)
+    return (
+        _scale(r * fade, distance),
+        _scale(g * fade, distance),
+        _scale(b * fade, distance)
+    )
 
 
 def gradient(begin, end, steps):
