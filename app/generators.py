@@ -40,22 +40,6 @@ def clamp((r, g, b)):
     )
 
 
-def _linear_gradient(begin, end, steps):
-    rB, gB, bB = begin
-    rE, gE, bE = end
-    rD = (rE - rB) / float(steps - 1)
-    gD = (gE - gB) / float(steps - 1)
-    bD = (bE - bB) / float(steps - 1)
-    return [
-        clamp((
-            rB + (rD * step),
-            gB + (gD * step),
-            bB + (bD * step)
-        ))
-        for step in xrange(steps)
-    ]
-
-
 def fade(target, steps):
     """
     Fade to target color.
@@ -68,7 +52,7 @@ def fade(target, steps):
 
     def _init(state):
         _render.gradients = tuple(
-            _linear_gradient(pixel, target, steps)
+            colors.gradient(pixel, target, steps)
             for _, pixel in state
         )
         return (

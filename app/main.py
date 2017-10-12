@@ -3,6 +3,7 @@ from __future__ import print_function
 import itertools
 import os
 import pwd
+import random
 import sys
 import time
 
@@ -28,6 +29,7 @@ os.setuid(pwd.getpwnam('nobody').pw_uid)
 
 render = strip.render_loop(driver)
 
+
 app = flask.Flask(__name__)
 
 
@@ -36,10 +38,11 @@ def index():
     return flask.render_template('index.html')
 
 
-@app.route('/centre-fade')
-def centre_fade():
+@app.route('/centre-fade', defaults={'r': 255, 'g': 0, 'b': 0})
+@app.route('/centre-fade/<int:r>/<int:g>/<int:b>')
+def centre_fade(r, g, b):
     pattern = tuple(
-        colors.scale((255, 0, 0), abs(n - (150 / 2)), ratio=162)
+        colors.scale((r, g, b), abs(n - (150 / 2)), ratio=162)
         for n in xrange(driver.numPixels())
     )
     pattern = generators.offset(pattern, int(driver.numPixels() / 2))
@@ -97,6 +100,19 @@ def pinks():
     render([
         itertools.cycle(pattern)
     ])
+    return flask.redirect('/')
+
+
+@app.route('/random-pastel')
+def random_pastel():
+    def pattern():
+        while True:
+            yield (
+                random.randint(16, 192),
+                random.randint(16, 140),
+                random.randint(0, 32)
+            )
+    render(generators.hertz(5, itertools.repeat(pattern())))
     return flask.redirect('/')
 
 
